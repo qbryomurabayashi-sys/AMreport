@@ -1,0 +1,5 @@
+{
+  "name": "AM近況報告アプリ",
+  "description": "エリアマネージャー向けの店舗近況報告アプリ。AIによる要約とコーチング機能付き。",
+  "requestFramePermissions": []
+}
