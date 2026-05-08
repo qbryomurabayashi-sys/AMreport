@@ -184,6 +184,9 @@ const PreviewModal = ({ isOpen, onClose, data }: any) => {
             data.storeReports.forEach((store: any) => {
                 report += `■ 店舗名: ${store.storeName}\n`;
                 report += `------------------------------------------\n`;
+                if (store.actionPlan) {
+                    report += `[第${Math.ceil(((new Date().getMonth() + 6) % 12 + 1) / 3)}Q アクションプラン]\n${store.actionPlan}\n\n`;
+                }
                 report += `[Keep (続けること)]\n${store.summaryKeep || "（要約未作成）"}\n\n`;
                 report += `[Problem (問題)]\n${store.summaryProblem || "（要約未作成）"}\n\n`;
                 report += `[Try (来月の実験)]\n${store.summaryTry || "（要約未作成）"}\n\n`;
@@ -566,6 +569,18 @@ export default function App() {
 
                         {currentStore ? (
                             <div className="space-y-4">
+                                <div className="mb-6">
+                                    <div className="flex items-center justify-between mb-3 px-3 py-2 bg-black/40 backdrop-blur border border-white/50 rounded">
+                                        <h3 className="text-white flex items-center"><i className="fa-solid fa-bullseye mr-2"></i>第{Math.ceil(((new Date().getMonth() + 6) % 12 + 1) / 3)}Q アクションプラン</h3>
+                                    </div>
+                                    <textarea 
+                                        value={currentStore.actionPlan || ""} 
+                                        onChange={e => updateStoreField(currentStore.id, 'actionPlan', e.target.value)}
+                                        className="dq-input w-full h-24 resize-none"
+                                        placeholder="アクションプランを入力してください..."
+                                    />
+                                </div>
+
                                 <div className="mb-6">
                                     <div className="flex items-center justify-between mb-3 px-3 py-2 bg-black/40 backdrop-blur border border-white/50 rounded">
                                         <h3 className="text-white flex items-center"><i className="fa-solid fa-calendar-week mr-2"></i>週次KPT報告</h3>
