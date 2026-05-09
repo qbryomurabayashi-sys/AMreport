@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
 
 // --- CONFIG ---
-const apiKey = "AIzaSyBoy-rUB5NxYiSdVuTMDcXPaG4oIcSRdUg";
+// Constants and Settings
 
 // --- DATA & CONSTANTS ---
 const INITIAL_DATA = {
@@ -84,39 +84,24 @@ const INTERVIEW_TYPES = [
 const summarizeText = async (label: string, content: string) => {
     if (!content.trim()) return "";
     
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const key = (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : '') || apiKey;
-    if (!key) {
-        alert("APIキーが設定されていません。\nコード内の `const apiKey = \"\";` にキーを入力してください。");
-        return "エラー: API Key未設定";
-    }
-
-    const ai = new GoogleGenAI({ apiKey: key });
-
-    const prompt = `
-        You are an assistant for a store Area Manager. 
-        Summarize the following text for a "${label}" section in a business report.
-        
-        Guidelines:
-        - Output Language: Japanese
-        - Keep it concise, professional, and easy to read.
-        - Use "です/ます" (polite) style.
-        - Fix any typos or grammatical errors.
-        - Do not lose key facts or numbers.
-        - If the input is just keywords, expand them into natural sentences.
-    `;
-
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt + "\n\nInput Text:\n" + content
+        const response = await fetch('/api/summarize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ label, content }),
         });
         
-        return response.text;
-    } catch (error: any) {
-        console.error("Gemini Summary Error:", error);
-        return "エラー: 生成に失敗しました (" + error.message + ")";
+        const data = await response.json();
+        
+        if (!response.ok) {
+            alert(data.error || "API通信エラーが発生しました。");
+            return "エラー: " + (data.error || "通信エラー");
+        }
+        
+        return data.text;
+    } catch (e) {
+        console.error("Gemini Summary Error:", e);
+        return "エラー: 通信エラー";
     }
 };
 
