@@ -16,8 +16,8 @@ export async function onRequestPost({ request, env }) {
 
     console.log(`API Key extracted (length: ${key.length})`);
 
-    // モデル名を最新のもの（gemini-3.1-pro-preview）に修正
-    const aiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${key}`;
+    // モデル名を最新のもの（gemini-2.5-pro）に修正
+    const aiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${key}`;
     const prompt = `
         You are an assistant for a store Area Manager. 
         Summarize the following text for a "${label}" section in a business report.
@@ -60,7 +60,13 @@ export async function onRequestPost({ request, env }) {
       status: 200,
       headers: { "Content-Type": "application/json" }
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message && error.message.includes("expired")) {
+      return new Response(JSON.stringify({ error: "設定したGemini APIキーの有効期限が切れているか、無効になっています。Google AI Studio（aistudio.google.com）で新しいAPIキーを発行し、左メニューの Settings > Secrets にある 'CUSTOM_GEMINI_API_KEY' の値を更新してください。" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
     return new Response(JSON.stringify({ error: error.message || "サーバーエラーが発生しました。" }), {
       status: 500,
       headers: { "Content-Type": "application/json" }

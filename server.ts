@@ -40,7 +40,7 @@ async function startServer() {
 
       // 新しいSDKの標準的なメソッドを使用
       const response = await ai.models.generateContent({
-        model: "gemini-3.1-pro-preview",
+        model: "gemini-2.5-pro",
         contents: prompt + "\n\nInput Text:\n" + content
       });
 
@@ -49,6 +49,9 @@ async function startServer() {
       res.json({ text });
     } catch (error: any) {
       console.error('Error in /api/summarize:', error);
+      if (error.message && error.message.includes('expired')) {
+        return res.status(401).json({ error: "設定したGemini APIキーの有効期限が切れているか、無効になっています。Google AI Studio（aistudio.google.com）で新しいAPIキーを発行し、左メニューの Settings > Secrets にある 'CUSTOM_GEMINI_API_KEY' の値を更新してください。" });
+      }
       res.status(500).json({ error: error.message || "要約中にエラーが発生しました。" });
     }
   });
