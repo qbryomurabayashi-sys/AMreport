@@ -13,12 +13,17 @@ async function startServer() {
   app.post("/api/summarize", async (req, res) => {
     try {
       const { label, content } = req.body;
-      const key = process.env.GEMINI_API_KEY;
+      // Gemini API Key の候補をいくつか確認し、前後の空白を除去
+      const rawKey = process.env.CUSTOM_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env["Gemini API Key"];
+      const key = rawKey?.trim();
 
       if (!key) {
-        return res.status(500).json({ error: "AI Studio環境変数のGEMINI_API_KEYが設定されていません。" });
+        console.error('API Key missing. Checked GEMINI_API_KEY');
+        return res.status(500).json({ error: "設定にAPIキーが見つかりません。AI StudioのSettings（左メニュー画面） > Secrets にて 'CUSTOM_GEMINI_API_KEY' という名前でご自身の Gemini APIキー を設定してください。" });
       }
 
+      console.log(`API Key detected (length: ${key.length})`);
+      // GoogleGenAIのコンストラクタはオブジェクトを受け取ります
       const ai = new GoogleGenAI({ apiKey: key });
       const prompt = `
         You are an assistant for a store Area Manager. 
@@ -33,12 +38,15 @@ async function startServer() {
         - If the input is just keywords, expand them into natural sentences.
       `;
 
+      // 新しいSDKの標準的なメソッドを使用
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt + "\n\nInput Text:\n" + content,
+        model: "gemini-3.1-pro-preview",
+        contents: prompt + "\n\nInput Text:\n" + content
       });
 
-      res.json({ text: response.text });
+      const text = response.text;
+
+      res.json({ text });
     } catch (error: any) {
       console.error('Error in /api/summarize:', error);
       res.status(500).json({ error: error.message || "要約中にエラーが発生しました。" });

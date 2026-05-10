@@ -3,16 +3,21 @@ export async function onRequestPost({ request, env }) {
     const { label, content } = await request.json();
     
     // Cloudflareの環境変数からAPIキーを取得
-    const key = env.GEMINI_API_KEY;
+    const rawKey = env.CUSTOM_GEMINI_API_KEY || env.GEMINI_API_KEY || env["Gemini API Key"];
+    const key = rawKey?.trim();
 
     if (!key) {
-      return new Response(JSON.stringify({ error: "Cloudflare環境変数のGEMINI_API_KEYが設定されていません。" }), {
+      console.error("API Key missing in env");
+      return new Response(JSON.stringify({ error: "APIキーが設定されていません。Settings（左メニュー画面）のSecretsで 'CUSTOM_GEMINI_API_KEY' という名前でご自身の Gemini APIキー を設定してください。" }), {
         status: 500,
         headers: { "Content-Type": "application/json" }
       });
     }
 
-    const aiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+    console.log(`API Key extracted (length: ${key.length})`);
+
+    // モデル名を最新のもの（gemini-3.1-pro-preview）に修正
+    const aiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${key}`;
     const prompt = `
         You are an assistant for a store Area Manager. 
         Summarize the following text for a "${label}" section in a business report.
